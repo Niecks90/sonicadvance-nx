@@ -1,0 +1,92 @@
+name: Build Sonic Advance Recomp (Multiplatform)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  # ====================================================
+  # 1. WINDOWS BUILD (.dll via MSYS2 + Clang)
+  # ====================================================
+  build-windows:
+    name: Build Windows (Clang / MSYS2)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2, Clang e SDL2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-clang
+            mingw-w64-x86_64-SDL2
+
+      - name: Compile DLL in Root
+        shell: msys2 {0}
+        run: |
+          clang -shared -O2 ./*.c -o ./SonicAdvance-bios.dll -lSDL2
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonicAdvance-Windows
+          path: SonicAdvance-bios.dll
+
+  # ====================================================
+  # 2. MACOS BUILD (.dylib via Clang Nativo)
+  # ====================================================
+  build-macos:
+    name: Build macOS (Clang)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install SDL2 (macOS)
+        run: brew install sdl2
+
+      - name: Compile dylib in Root
+        run: |
+          clang -dynamiclib -O2 ./*.c -o ./SonicAdvance-bios.dylib \
+            $(sdl2-config --cflags --libs) \
+            -framework Cocoa
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonicAdvance-macOS
+          path: SonicAdvance-bios.dylib
+
+  # ====================================================
+  # 3. LINUX BUILD (.so via Clang)
+  # ====================================================
+  build-linux:
+    name: Build Linux (Clang)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libsdl2-dev
+
+      - name: Compile Shared Object in Root
+        run: |
+          clang -shared -fPIC -O2 ./*.c -o ./SonicAdvance-bios.so -lSDL2 -lm
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonicAdvance-Linux
+          path: SonicAdvance-bios.so
