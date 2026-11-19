@@ -1,131 +1,142 @@
-# Mario Kart: Super Circuit Recomp (Switch Port)
+# Sonic Advance NX (`sonicadvance-nx`)
 
-> **Nintendo Switch Homebrew Exclusive**  
-> Ported and optimized for the Nintendo Switch by **Niecks90** (v0.2.1).
+[![Release](https://img.shields.io/github/v/release/Niecks90/sonicadvance-nx?include_prereleases&color=blue&label=release)](https://github.com/Niecks90/sonicadvance-nx/releases)
+[![Platform](https://img.shields.io/badge/platform-Nintendo%20Switch-e60012.svg)](https://www.nintendo.com/switch/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Static recompilation of **Mario Kart: Super Circuit** running natively on the Nintendo Switch at a smooth **60 FPS**, featuring multi-threaded PPU rasterization, Adaptive Widescreen (16:9), optional 60 FPS track rendering, and configurable internal resolution.
+> **Nintendo Switch Homebrew Port**  
+> Ported and optimized for Nintendo Switch by **Niecks90** (v0.1.0).
 
-The game ROM and Nintendo GBA BIOS are **not included**. You must provide your own legally obtained dumps.
+A native static recompilation port of **Sonic Advance** (Game Boy Advance) for the Nintendo Switch, built on the [`gbarecomp`](https://github.com/mstan/gbarecomp) framework with custom Nintendo Switch Horizon OS / libnx platform integration.
 
----
-
-## What's New in v0.2.1
-
-- **Controller Mapping Fixes**: Swapped A and B buttons to match the native Nintendo layout (A = Accelerate, B = Brake/Reverse).
-- **Rear Triggers Support (ZL / ZR)**: Rear triggers ZL and ZR now perform the same functions as L and R (Hop / Drift / Use Item).
-- **Removed Fast-Forward on ZR**: Removed the unwanted turbo / pseudo fast-forward mode triggered by ZR.
-
-## What's New in v0.2.0
-
-- **Multi-Core PPU Architecture**: PPU scanline rasterization is parallelized across **Core 0** and **Core 2** in 8-line bands, while the main emulation thread runs isolated on **Core 1** with a 32 MiB stack.
-- **Horizon-Native FramePacer**: Custom frame pacer using libnx `svcSleepThread` with spin-tails and quantum yields, eliminating the ~50 FPS timer drift and fixing all audio crackling / buffer underruns.
-- **Full Widescreen Support (16:9)**: Fixed widescreen margin detection across **all 40 courses** (including Riverside Park, Sky Garden, Boo Lake, Cheese Land, Rainbow Road) and Battle arenas.
-- **Un-throttled GPU & Memory Bus**: Default boost mode runs the CPU at 1020 MHz while leaving the Tegra X1 GPU and EMC memory bus at full speed (1600 MHz), removing memory bus starvation.
-- **ARM64 NEON Texture Presentation**: Fast SIMD ABGR8888 conversion for instant SDL2 presentation.
-- **Robust Configuration**: Case-insensitive and alias-friendly `config.txt` parser supporting `60fps`, `fps60`, `uncapped`, `cpu_boost`, and more.
-- **Custom Homebrew Icon & NACP Metadata**: Embedded 0.2.0 metadata and high-resolution application icon.
+The game ROM and Nintendo GBA BIOS are **not included**. You must provide your own legally obtained copies.
 
 ---
 
-## SD Card Layout
+## ⚡ Features
 
-Create a directory on your SD card at `sdmc:/switch/mksc_nx/` and place your files as follows:
+- **Native AArch64 Execution:** All 24,000+ GBA routines statically recompiled directly into native 64-bit ARM machine code, running at a locked, buttery-smooth **60 FPS** with zero CPU emulation overhead and minimal battery consumption.
+- **Multi-Threaded PPU Worker:** Custom multi-core rendering architecture running the PPU rasterizer on a dedicated thread pinned to **CPU Core 2**, featuring 1:1 sprite fast-path and vertical culling.
+- **Audio-Paced Low Latency:** Non-blocking scanout synchronization paced via SDL2 audio buffers on Core 1 to prevent frame starvation.
+- **Pixel-Perfect 4:3 Presentation:** Authentic integer presentation preserving the original 240×160 GBA aspect ratio without distortion or uneven pixel scaling.
+- **Rear Triggers Support (ZL / ZR):** Ergonomically mapped so ZL acts as L and ZR acts as R.
+- **Analog Stick & D-Pad Navigation:** Smooth motion using either the Left Analog Stick (with tuned deadzones) or standard D-Pad directions.
+- **Clean Homebrew Exit:** Hold **+ (Start)** and **- (Select)** simultaneously to quit safely back to the Homebrew Menu.
+- **Isolated Save Directory:** Automatically creates and organizes saves under `sdmc:/switch/sonicadvance_nx/save/sonic_advance_usa.sav` (EEPROM 8K).
+- **Configurable Settings:** Adjustable parameters through `sdmc:/switch/sonicadvance_nx/config.txt`.
+
+---
+
+## 📦 Installation & SD Card Layout
+
+1. Download `sonic_advance_nx.nro` from the [Latest Release](https://github.com/Niecks90/sonicadvance-nx/releases).
+2. Create the directory on your Switch microSD card:
+   ```
+   sdmc:/switch/sonicadvance_nx/
+   ```
+3. Place `sonic_advance_nx.nro` inside this folder.
+4. Place your legally dumped **Sonic Advance** GBA ROM renamed as `rom.gba`:
+   - **Supported Version:** Sonic Advance (USA) (En,Ja) (Game ID: `ASOE`)
+   - **Exact Size:** `8,388,608` bytes (8 MB)
+   - **SHA-1:** `d842afa7dd1e84de08addb94a51506f1bcafd551`
+   - **SHA-256:** `afc29e3325baf68a1822e88b25fcb59c8bdc29b8cdc48fa21c56defbd60ca020`
+5. Place your official GBA BIOS dump named `gba_bios.bin`:
+   - **Exact Size:** `16,384` bytes
+   - **SHA-1:** `300c20df6731a33952ded8c436f7f186d25d3492`
+6. Final SD card file structure:
 
 ```
-/switch/mksc_nx/
- ├── mksc_nx.nro       (The game executable)
- ├── rom.gba           (Your Mario Kart: Super Circuit USA ROM - SHA1: 9d327c030c3e2d9007990518594f70c3340ac56f)
- ├── gba_bios.bin      (Your retail GBA BIOS - mandatory)
- ├── config.txt        (Configuration file, auto-created on first launch)
- └── save/             (Auto-created directory for game saves)
+/switch/sonicadvance_nx/
+ ├── sonic_advance_nx.nro       (The game executable)
+ ├── rom.gba                    (Your Sonic Advance USA ROM)
+ ├── gba_bios.bin               (Official GBA BIOS image)
+ ├── config.txt                 (Auto-generated on first launch)
+ └── save/
+      └── sonic_advance_usa.sav (Game save file)
 ```
 
-> [!IMPORTANT]
-> For optimal performance, always launch this homebrew using **Title Override** (hold `R` while launching an installed retail game from the Switch home menu), rather than Applet Mode (Album).
+7. Launch via the **Homebrew Menu** in Title Override mode (hold **R** while opening any installed game from the Switch home screen for full RAM access).
 
 ---
 
-## Controls
+## 🎮 Controls
 
-| Switch Control | Action |
-|---|---|
-| **D-Pad / Left Stick** | Steer / Navigation |
-| **A** | Accelerate |
-| **B** | Brake / Reverse |
-| **L / R / ZL / ZR** | Hop / Drift / Use Item |
-| **+ (Start)** | Pause / Menu |
-| **- (Select)** | Change Camera / View |
-| **+ and - Held Together** | **Exit the game cleanly to Homebrew Menu** |
+| Switch Controller Input | Game Action |
+|:---|:---|
+| **D-Pad / Left Analog Stick** | Move / Crouch / Look Up |
+| **A / B** | Jump / Spin Dash / Special Actions |
+| **L / ZL** | Left Shoulder Action / Trick |
+| **R / ZR** | Right Shoulder Action / Trick |
+| **+ (Plus / Start)** | Pause / Confirm |
+| **- (Minus / Select)** | Select |
+| **+ and - held together** | Safe exit back to Homebrew Menu |
 
 ---
 
-## Configuration (`config.txt`)
+## ⚙️ Configuration (`config.txt`)
 
-On first launch, `config.txt` is automatically created in `sdmc:/switch/mksc_nx/config.txt` with default settings:
+On first launch, `config.txt` is automatically created with default settings:
 
 ```ini
-widescreen = 1
-fps60 = 1
 vsync = 0
 uncapped = 0
 cpu_boost = 0
-high_res_affine = 0
 linear_filter = 0
 show_fps = 0
 audio = 1
 ```
 
-### Options Explained:
-
-- **`widescreen`** (`1` or `0`):
-  - `1` *(Default)*: Expands rendering to 16:9 (284×160) without stretching. HUD elements are edge-anchored and real course margins are drawn.
-  - `0`: Authentic original 3:2 aspect ratio (240×160) with black pillarboxes.
-- **`fps60`** or **`60fps`** (`1` or `0`):
-  - `1` *(Default)*: Recalculates the Mode 7 perspective track every frame (60 FPS) for maximum visual smoothness.
-  - `0`: Generates the track every second frame (30 FPS), exactly as authored on the original GBA hardware (saves CPU load).
-- **`vsync`** (`0` or `1`):
-  - `0` *(Default)*: Uses the Horizon-native `FramePacer` to pace to the GBA's exact 59.7275 Hz refresh rate without blocking the emulation thread on HDMI scanout.
-  - `1`: Synchronizes presentation directly with the Switch display refresh.
-- **`cpu_boost`** (`0`, `1`, or `2`):
-  - `0` *(Default / Recommended)*: Normal mode (CPU 1020 MHz, GPU un-throttled up to 768 MHz, memory EMC at full 1600 MHz).
-  - `1`: FastLoad mode (CPU clocked up to 1785 MHz for heavy workloads or high-res affine).
-  - `2`: Type2 legacy mode (CPU 1020 MHz, GPU throttled to 76.8 MHz).
-- **`uncapped`** (`0` or `1`):
-  - `0` *(Default)*: Paced to 59.7275 Hz.
-  - `1`: Disables frame pacing for benchmarking and profiling.
-- **`high_res_affine`** (`0` or `1`): Enables higher internal resolution for the Mode 7 perspective track.
-- **`linear_filter`** (`0` or `1`): Enables bilinear texture filtering.
-- **`show_fps`** (`0` or `1`): Displays an on-screen FPS counter in the upper-left corner.
-- **`audio`** (`1` or `0`): Enables or disables sound output.
+### Options Breakdown:
+- **`audio`** (`1` or `0`): Enables or disables audio processing and output.
+- **`vsync`** (`0` or `1`): `0` enables audio-driven pacing (recommended for locked 60 FPS). `1` forces display VSync wait.
+- **`linear_filter`** (`0` or `1`): `0` for razor-sharp pixel presentation (recommended), `1` for bilinear smoothing.
+- **`show_fps`** (`1` or `0`): Toggles the real-time FPS counter overlay.
+- **`cpu_boost`** (`0`, `1`, or `2`): `0` = Normal balanced clock (1020 MHz CPU, full GPU), `1` = FastLoad boost mode, `2` = Type 2 mode.
+- **`uncapped`** (`0` or `1`): `0` preserves standard 60 FPS cadence, `1` removes frame pacing cap.
 
 ---
 
-## Building from Source
+## 🛠️ Building from Source
 
-Building requires [devkitPro](https://devkitpro.org/) with the `devkitA64` toolchain and Switch portlibs installed.
+### Prerequisites
+- Linux / WSL environment
+- [devkitPro](https://devkitpro.org/) with `devkitA64`, `libnx`, and `switch-sdl2` portlibs
+- CMake ≥ 3.20 & GCC/Clang
+
+### Build Steps
 
 ```bash
-export DEVKITPRO=/opt/devkitpro
-export DEVKITA64=/opt/devkitpro/devkitA64
-export PATH=/opt/devkitpro/tools/bin:$DEVKITA64/bin:$PATH
+# 1. Clone repository
+git clone https://github.com/Niecks90/sonicadvance-nx.git
+cd sonicadvance-nx
 
+# 2. Place your matching Sonic Advance USA ROM in roms/
+mkdir -p roms
+cp /path/to/sonic_advance_usa.gba roms/sonic_advance_usa.gba
+
+# 3. Generate static recompilation shards (builds host compiler & translates ROM)
+./generator.sh
+
+# 4. Cross-compile for Nintendo Switch
 ./build_switch.sh
 ```
 
-The output executable `mksc_nx.nro` will be placed in `build/`.
+The resulting `sonic_advance_nx.nro` will be produced in `build/`.
 
 ---
 
-## Credits
+## 🙏 Credits
 
-- **Niecks90**: Nintendo Switch port, multi-core architecture, performance optimizations, Horizon FramePacer, and build integration.
-- **mstan**: Original `gbarecomp` framework and `MarioKartSuperCircuitRecomp` project.
-- **antimattur**: 60 FPS track patch research and decompilation contributions.
-- **jellees**: Additional decompilation and reverse-engineering work.
-- **devkitPro**: Nintendo Switch homebrew toolchain (`devkitA64`, `libnx`).
+- **Niecks90**: Nintendo Switch port, AArch64 optimization, multi-core PPU pipeline, and packaging.
+- **mstan**: Original [`gbarecomp`](https://github.com/mstan/gbarecomp) framework and static recompilation engine.
+- **smiluredev**: [`SonicAdvanceRecomp`](https://github.com/smiluredev/SonicAdvanceRecomp) upstream project.
+- **devkitPro**: Nintendo Switch toolchains (`devkitA64`, `libnx`).
 
 ---
 
-## Legal
+## ⚖️ Copyright & Legal Disclaimer
 
-This is an unofficial, non-commercial preservation and educational project. It is not affiliated with, authorized, or endorsed by Nintendo. All trademarks, registered trademarks, game titles, and assets are property of their respective owners. No copyrighted game assets, ROMs, or BIOS binaries are provided.
+- This is an unofficial, non-commercial fan-made port created solely for preservation and educational purposes.
+- No copyrighted game code, assets, ROMs, or proprietary BIOS binaries are contained within this repository or distributed in releases.
+- *Sonic Advance* and *Sonic the Hedgehog* are registered trademarks of **SEGA Corporation / Sonic Team**.
+- *Nintendo Switch* and *Game Boy Advance* are registered trademarks of **Nintendo Co., Ltd.**

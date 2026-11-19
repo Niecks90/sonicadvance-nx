@@ -35,3 +35,4 @@ recomp_seed_proposals.toml
 __pycache__/
 symbols/mksc_readelf_*.txt
 symbols/mksc.map
+TASK.md

@@ -2356,7 +2356,7 @@ private:
         const Result affinity_rc =
             svcSetThreadCoreMask(self->handle, slot->core, 1u << slot->core);
         std::fprintf(stderr,
-                     "mksc: PPU worker started on Core %u (target %d), affinity=0x%x rc=0x%08x\n",
+                     "sa: PPU worker started on Core %u (target %d), affinity=0x%x rc=0x%08x\n",
                      svcGetCurrentProcessorNumber(), slot->core,
                      1u << slot->core, affinity_rc);
         slot->owner->run();
@@ -2393,14 +2393,14 @@ private:
                                            0x100000, 0x2D, slot.core);
             if (R_FAILED(rc)) {
                 std::fprintf(stderr,
-                             "mksc: PPU Core %d thread creation failed: 0x%08x\n",
+                             "sa: PPU Core %d thread creation failed: 0x%08x\n",
                              slot.core, rc);
                 continue;
             }
             const Result start_rc = threadStart(&slot.thread);
             if (R_FAILED(start_rc)) {
                 std::fprintf(stderr,
-                             "mksc: PPU Core %d thread start failed: 0x%08x\n",
+                             "sa: PPU Core %d thread start failed: 0x%08x\n",
                              slot.core, start_rc);
                 threadClose(&slot.thread);
                 continue;

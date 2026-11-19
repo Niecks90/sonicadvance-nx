@@ -1,0 +1,17 @@
+# AUTO-GENERATED placeholder — replace with importer output once a Sonic Advance
+# decomp ELF is available.
+#
+# This is a CONFIG OVERLAY, not a program config: pass it as a
+# second --config after game.toml.
+# It deliberately declares no [program] table, and it loses every
+# conflict with the base config by design.
+#
+# program : Sonic Advance (USA, ASOE)
+# sources : (none yet)
+
+# The base config's [identity].sha1 must match this.
+[identity]
+sha1 = "d842afa7dd1e84de08addb94a51506f1bcafd551"
+# rom size = 0x00800000
+
+# No [[data_range]] entries yet — add from decomp map once available.

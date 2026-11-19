@@ -1,21 +1,21 @@
 format_version = 1
-id = "mario-kart-super-circuit.enhancement.internal-resolution"
+id = "sonic-advance.enhancement.internal-resolution"
 version = "1.0.0"
-name = "Mario Kart: Super Circuit Higher Internal Resolution"
-author = "mstan"
-description = "Render the race track with finer samples while keeping the original sprites and HUD artwork."
+name = "Sonic Advance Higher Internal Resolution"
+author = "Niecks90"
+description = "Render the game with finer internal samples while keeping the original sprites and HUD artwork at native resolution."
 license = "MIT"
 resolver = "declarative"
 save_compatibility = "shared"
 
 [[target]]
-game_id = "mario-kart-super-circuit-us"
-rom_sha1 = "9d327c030c3e2d9007990518594f70c3340ac56f"
+game_id = "sonic-advance-us"
+rom_sha1 = "d842afa7dd1e84de08addb94a51506f1bcafd551"
 
 [[feature]]
 id = "internal-resolution"
 name = "Higher Internal Resolution"
-description = "Add detail to the perspective track. Works with Adaptive Widescreen; menus and original artwork retain their authored pixels. Up to 4x is recommended. 8x and 16x are experimental and may run very slowly."
+description = "Add detail to the rendered output. Menus and original artwork retain their authored pixels. Up to 4x is recommended. 8x and above are experimental and may run slowly."
 group = "Graphics"
 default_enabled = false
 
@@ -48,4 +48,4 @@ label = "16x (experimental)"
 
 [[plugin]]
 feature = "internal-resolution"
-id = "mario-kart-super-circuit.internal-resolution"
+id = "sonic-advance.internal-resolution"

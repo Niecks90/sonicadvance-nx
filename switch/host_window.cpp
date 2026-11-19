@@ -2558,7 +2558,7 @@ void HostWindow::present(const uint8_t* rgb888, unsigned sampled_w, unsigned sam
             std::snprintf(buf, sizeof(buf), "%s — %.1f fps", b->title.c_str(),
                           b->fps_value);
             SDL_SetWindowTitle(b->window, buf);
-            std::fprintf(stderr, "[mksc-fps] %.1f\n",
+            std::fprintf(stderr, "[sa-fps] %.1f\n",
                          b->fps_value);
             std::fflush(stderr);
             b->fps_window_start = now;
