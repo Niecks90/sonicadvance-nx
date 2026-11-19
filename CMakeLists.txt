@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(SonicAdvanceRecomp VERSION 0.1.2 LANGUAGES C CXX)
+project(SonicAdvanceRecomp VERSION 0.1.3 LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 20)
@@ -194,7 +194,7 @@ if(NINTENDO_SWITCH OR __SWITCH__ OR SWITCH)
     target_link_libraries(SonicAdvanceRecomp PRIVATE gbarecomp_runtime gbarecomp_armv4t)
 
     add_custom_command(TARGET SonicAdvanceRecomp POST_BUILD
-        COMMAND nacptool --create "Sonic Advance Recomp" "Niecks90" "0.1.2"
+        COMMAND nacptool --create "Sonic Advance Recomp" "Niecks90" "0.1.3"
             $<TARGET_FILE_DIR:SonicAdvanceRecomp>/sonic_advance_nx.nacp
         COMMAND elf2nro $<TARGET_FILE:SonicAdvanceRecomp>
             $<TARGET_FILE_DIR:SonicAdvanceRecomp>/sonic_advance_nx.nro

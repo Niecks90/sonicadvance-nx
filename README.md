@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 > **Nintendo Switch Homebrew Port**  
-> Ported and optimized for Nintendo Switch by **Niecks90** (v0.1.2).
+> Ported and optimized for Nintendo Switch by **Niecks90** (v0.1.3).
 
 A native static recompilation port of **Sonic Advance** (Game Boy Advance) for the Nintendo Switch, built on the [`gbarecomp`](https://github.com/mstan/gbarecomp) framework with custom Nintendo Switch Horizon OS / libnx platform integration.
 

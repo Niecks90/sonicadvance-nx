@@ -107,7 +107,8 @@ int main(int argc, char** argv) {
     mkdir("sdmc:/switch/sonicadvance_nx", 0777);
     mkdir("sdmc:/switch/sonicadvance_nx/save", 0777);
     chdir("sdmc:/switch/sonicadvance_nx");
-    setenv("GBARECOMP_BIOS_HLE", "1", 1);
+    setenv("GBARECOMP_BIOS_HLE", "0", 1);
+    unsetenv("GBARECOMP_BIOS_SKIP_INTRO");
     setenv("GBARECOMP_DIAGNOSTICS", "0", 1);
     // On Switch, calling present() with SDL_RENDERER_PRESENTVSYNC on the
     // emulation thread (Core 1) causes SDL_RenderPresent to block up to
@@ -308,7 +309,7 @@ int main(int argc, char** argv) {
     static char arg_save_path[]     = "sdmc:/switch/sonicadvance_nx/save/sonic_advance_usa.sav";
     static char arg_linear_flag[]   = "--linear-filter";
     static char arg_uncapped_flag[] = "--uncapped";
-    static char arg_hle[]           = "--bios-hle";
+    static char arg_no_hle[]        = "--no-bios-hle";
 
     std::vector<char*> av;
     av.push_back(argv && argv[0] ? argv[0] : arg_prog);
@@ -318,7 +319,7 @@ int main(int argc, char** argv) {
     av.push_back(arg_rom_path);
     av.push_back(arg_save_flag);
     av.push_back(arg_save_path);
-    av.push_back(arg_hle);
+    av.push_back(arg_no_hle);
 
     if (config_linear_filter) av.push_back(arg_linear_flag);
     if (config_uncapped)      av.push_back(arg_uncapped_flag);
