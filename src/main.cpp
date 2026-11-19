@@ -17,6 +17,31 @@
 
 extern "C" bool g_config_audio = true;
 
+// Widescreen margin handling: when 16:9 view is requested (284x160),
+// ensure the 22px left and right margins are cleanly pillarboxed (black)
+// rather than showing wrapped/corrupted 256px GBA tilemap columns and sprites.
+extern "C" int g_ws_pillarbox;
+extern "C" int g_ws_obj_native_clip;
+extern "C" int (*g_ws_bg_x_provider)(int bg, int output_x, int screen_y, int* out_hw_x);
+
+static int sa_ws_bg_x_provider(int bg, int output_x, int screen_y, int* out_hw_x) {
+    (void)bg;
+    (void)screen_y;
+    (void)out_hw_x;
+    // Native viewport is centered at x in [22, 261]
+    const int hx = output_x - 22;
+    if (hx < 0 || hx >= 240) return -1; // -1 = skip / suppress margin BG tile
+    return 0; // 0 = default native sampling
+}
+
+static void sa_extended_view_init(std::uint32_t extra_left, std::uint32_t extra_right) {
+    (void)extra_left;
+    (void)extra_right;
+    g_ws_pillarbox = 1;
+    g_ws_obj_native_clip = 1;
+    g_ws_bg_x_provider = &sa_ws_bg_x_provider;
+}
+
 static int sa_flash_stack_dispatch(uint32_t pc, int thumb) {
     constexpr uint32_t stack_begin = 0x03007000u;
     constexpr uint32_t stack_end   = 0x03008000u;
@@ -278,12 +303,12 @@ int main(int argc, char** argv) {
 #if defined(__SWITCH__)
     const int kViewWidth = config_widescreen ? 284 : 240;
 #else
-    const int kViewWidth = 240;
+    const int kViewWidth = 284;
 #endif
     opts.max_view_width        = kViewWidth;
     opts.max_resize_view_width = kViewWidth;
     opts.resize_driven_view    = false;
-    opts.extended_view_init    = nullptr;
+    opts.extended_view_init    = &sa_extended_view_init;
 
 #if !defined(__SWITCH__)
     opts.launcher_game_config = "game.toml";
