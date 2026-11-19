@@ -2296,6 +2296,27 @@ public:
 
     ~PpuBandWorker() { shutdown(); }
 
+    void shutdown() {
+        mutexLock(&mutex_);
+        if (!started_) {
+            mutexUnlock(&mutex_);
+            return;
+        }
+        stop_ = true;
+        mutexUnlock(&mutex_);
+        condvarWakeAll(&work_cv_);
+        for (WorkerSlot& slot : slots_) {
+            if (!slot.active) continue;
+            threadWaitForExit(&slot.thread);
+            threadClose(&slot.thread);
+            slot.active = false;
+        }
+        mutexLock(&mutex_);
+        started_ = false;
+        init_attempted_ = false;
+        mutexUnlock(&mutex_);
+    }
+
     bool submit(const PpuBandJob& job) {
         if (!ensure_started()) return false;
         mutexLock(&mutex_);
@@ -2412,27 +2433,6 @@ private:
         started_ = active_count > 0;
         mutexUnlock(&mutex_);
         return active_count > 0;
-    }
-
-    void shutdown() {
-        mutexLock(&mutex_);
-        if (!started_) {
-            mutexUnlock(&mutex_);
-            return;
-        }
-        stop_ = true;
-        mutexUnlock(&mutex_);
-        condvarWakeAll(&work_cv_);
-        for (WorkerSlot& slot : slots_) {
-            if (!slot.active) continue;
-            threadWaitForExit(&slot.thread);
-            threadClose(&slot.thread);
-            slot.active = false;
-        }
-        mutexLock(&mutex_);
-        started_ = false;
-        init_attempted_ = false;
-        mutexUnlock(&mutex_);
     }
 
     void run() {
@@ -2557,6 +2557,10 @@ SwitchScanlineDispatch g_switch_scanlines;
 static void switch_quiesce_scanlines() {
     g_ppu_band_worker.wait_all();
     g_switch_scanlines.reset();
+}
+
+extern "C" void switch_ppu_shutdown() {
+    g_ppu_band_worker.shutdown();
 }
 #endif
 

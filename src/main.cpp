@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "runtime.h"
+#include "runtime_arm.h"
 #if defined(GBAGAME_NETPLAY)
 #include "multiplayer_launch.h"
 #include "gba_netplay_build_identity.h"
@@ -13,6 +14,22 @@
 #if defined(GBAGAME_RECOMP_UI)
 #include "game_launcher_boot.h"
 #endif
+
+extern "C" bool g_config_audio = true;
+
+static int sa_flash_stack_dispatch(uint32_t pc, int thumb) {
+    constexpr uint32_t stack_begin = 0x03007000u;
+    constexpr uint32_t stack_end   = 0x03008000u;
+    if (!thumb || pc < stack_begin || pc >= stack_end || (pc & 1u)) return 0;
+    if (bus_read_u16(pc) == 0x7800u && bus_read_u16(pc + 2u) == 0x4770u) {
+        g_cpu.R[0] = bus_read_u8(g_cpu.R[0]);
+        const uint32_t lr = g_cpu.R[14];
+        g_cpu.R[15] = lr & ~1u;
+        runtime_dispatch_with_exchange(lr);
+        return 1;
+    }
+    return 0;
+}
 
 #if defined(__SWITCH__)
 #include <SDL.h>
@@ -25,6 +42,8 @@
 #include <stdio.h>
 #include <cstdarg>
 #include <exception>
+
+extern "C" void switch_ppu_shutdown();
 
 void log_boot(const char* fmt, ...) {
     FILE* f = fopen("sdmc:/switch/sonicadvance_nx/boot.log", "a");
@@ -42,7 +61,6 @@ void log_boot(const char* fmt, ...) {
 }
 
 extern "C" const uint32_t kDispatchTableLen;
-extern "C" bool g_config_audio = true;
 bool g_config_show_fps = false;
 
 struct GameThreadArgs {
@@ -60,6 +78,7 @@ static void game_runner_thread(void* arg) {
              1u << 1, affinity_rc, svcGetCurrentProcessorNumber());
     try {
         log_boot("Starting gbarecomp runtime inside 32 MiB stack thread...\n");
+        g_runtime_ram_dispatch_hook = &sa_flash_stack_dispatch;
         ctx->return_code = gbarecomp::run_game(ctx->argc, ctx->argv, *ctx->opts);
         log_boot("Exited gbarecomp runtime cleanly with code %d.\n", ctx->return_code);
     } catch (const std::exception& e) {
@@ -324,12 +343,15 @@ int main(int argc, char** argv) {
 
     threadWaitForExit(&game_thread);
     threadClose(&game_thread);
+    switch_ppu_shutdown();
+    SDL_Quit();
     return thread_args.return_code;
 
 #else
     std::vector<char*> av;
     av.reserve(args.size());
     for (auto& arg : args) av.push_back(arg.data());
+    g_runtime_ram_dispatch_hook = &sa_flash_stack_dispatch;
     return gbarecomp::run_game(static_cast<int>(av.size()), av.data(), opts);
 #endif
 }

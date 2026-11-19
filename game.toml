@@ -35,9 +35,9 @@ path = "roms/sonic_advance_usa.gba"
 sha1 = "d842afa7dd1e84de08addb94a51506f1bcafd551"
 
 [save]
-# Sonic Advance uses EEPROM 8 kbit (0x2000 bytes).
-type = "eeprom8k"
-size = 8192
+# Sonic Advance uses 512 Kbit Flash (64 KB / 0x10000 bytes).
+type = "flash512"
+size = 65536
 path = "saves/sonic_advance_usa.sav"
 
 [runtime]
@@ -56,6 +56,28 @@ affine_filter = true
 shadow = false
 
 # ---------------------------------------------------------------------------
-# Extra functions, jump tables, and code copies will be added here once a
-# Sonic Advance decomp or profiling run provides reviewed control-flow seeds.
+# Extra functions, jump tables, and code copies
 # ---------------------------------------------------------------------------
+
+[[code_copy]]
+name = "m4a_sound_mixer"
+runtime_start = 0x03000000
+source_start = 0x08096b34
+size = 0x00000400
+
+[[extra_func]]
+addr = 0x03000000
+mode = "thumb"
+source_addr = 0x08096b34
+note = "M4A sound mixer in IWRAM"
+
+[[extra_func]]
+addr = 0x08097150
+mode = "thumb"
+note = "Audio/task callback in ROM"
+
+[[extra_func]]
+addr = 0x08098ec8
+mode = "thumb"
+note = "Flash stack helper in ROM"
+

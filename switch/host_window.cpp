@@ -3255,6 +3255,18 @@ HostWindow::Events HostWindow::pump() {
         if (left_y < -8000) keys &= static_cast<uint16_t>(~(1u << 6)); // Up
         if (left_y > 8000)  keys &= static_cast<uint16_t>(~(1u << 7)); // Down
 
+        // Natural Switch button mappings:
+        // Physical A / X -> GBA A (jump/confirm)
+        // Physical B / Y -> GBA B (roll/attack/cancel)
+        if (SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_A) ||
+            SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_X)) {
+            keys &= static_cast<uint16_t>(~(1u << 0));
+        }
+        if (SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_B) ||
+            SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_Y)) {
+            keys &= static_cast<uint16_t>(~(1u << 1));
+        }
+
         // Plus + Minus Combo to exit
         if (SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_START) &&
             SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_BACK)) {

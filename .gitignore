@@ -12,6 +12,8 @@ generated/*.json
 build/
 build-*/
 release-stage/
+release_staging/
+*.zip
 recomp_cache/
 saves/
 *.sav

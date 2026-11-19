@@ -20,6 +20,12 @@ cmake .. \
 if [ -f ../switch/host_window.h ] && [ -d ../gbarecomp/src/runtime ]; then
     cp -f ../switch/host_window.h ../gbarecomp/src/runtime/host_window.h
 fi
+if [ -f ../switch/host_window.cpp ] && [ -d ../gbarecomp/src/runtime ]; then
+    cp -f ../switch/host_window.cpp ../gbarecomp/src/runtime/host_window.cpp
+fi
+if [ -f ../switch/gba_ppu.cpp ] && [ -d ../gbarecomp/src/gba ]; then
+    cp -f ../switch/gba_ppu.cpp ../gbarecomp/src/gba/gba_ppu.cpp
+fi
 if [ -f ../switch/host_platform.cpp ] && [ -d ../gbarecomp/src/runtime ]; then
     cp -f ../switch/host_platform.cpp ../gbarecomp/src/runtime/host_platform.cpp
 fi

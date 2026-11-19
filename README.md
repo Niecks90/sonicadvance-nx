@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 > **Nintendo Switch Homebrew Port**  
-> Ported and optimized for Nintendo Switch by **Niecks90** (v0.1.0).
+> Ported and optimized for Nintendo Switch by **Niecks90** (v0.1.1).
 
 A native static recompilation port of **Sonic Advance** (Game Boy Advance) for the Nintendo Switch, built on the [`gbarecomp`](https://github.com/mstan/gbarecomp) framework with custom Nintendo Switch Horizon OS / libnx platform integration.
 
@@ -22,7 +22,7 @@ The game ROM and Nintendo GBA BIOS are **not included**. You must provide your o
 - **Rear Triggers Support (ZL / ZR):** Ergonomically mapped so ZL acts as L and ZR acts as R.
 - **Analog Stick & D-Pad Navigation:** Smooth motion using either the Left Analog Stick (with tuned deadzones) or standard D-Pad directions.
 - **Clean Homebrew Exit:** Hold **+ (Start)** and **- (Select)** simultaneously to quit safely back to the Homebrew Menu.
-- **Isolated Save Directory:** Automatically creates and organizes saves under `sdmc:/switch/sonicadvance_nx/save/sonic_advance_usa.sav` (EEPROM 8K).
+- **Isolated Save Directory:** Automatically creates and organizes saves under `sdmc:/switch/sonicadvance_nx/save/sonic_advance_usa.sav` (Flash 512K / 64 KB).
 - **Configurable Settings:** Adjustable parameters through `sdmc:/switch/sonicadvance_nx/config.txt`.
 
 ---
