@@ -166,9 +166,7 @@ int main(int argc, char** argv) {
     bool config_uncapped = false;
     int  config_cpu_boost = 0; // 0=Normal, 1=FastLoad, 2=Type2
     g_config_show_fps = false;
-
-    // 4:3 is the natural presentation for Sonic Advance (240x160 native).
-    // No widescreen mod is applied by default.
+    bool config_widescreen = true; // 284x160 (16:9) by default; set widescreen=0 in config.txt for 240x160
 
     std::string config_paths[] = {
         "sdmc:/switch/sonicadvance_nx/config.txt",
@@ -220,6 +218,9 @@ int main(int argc, char** argv) {
                 } else if (key == "audio") {
                     if (is_true)  g_config_audio = true;
                     else if (is_false) g_config_audio = false;
+                } else if (key == "widescreen") {
+                    if (is_true)  config_widescreen = true;
+                    else if (is_false) config_widescreen = false;
                 }
             }
         }
@@ -232,6 +233,7 @@ int main(int argc, char** argv) {
         new_config << "linear_filter = 0\n";
         new_config << "show_fps = 0\n";
         new_config << "audio = 1\n";
+        new_config << "widescreen = 1\n";
     }
 
     ApmCpuBoostMode boost_mode = ApmCpuBoostMode_Normal;
@@ -247,8 +249,8 @@ int main(int argc, char** argv) {
         setenv("GBARECOMP_NO_VSYNC", "1", 1);
         unsetenv("GBARECOMP_VSYNC");
     }
-    log_boot("Config: vsync=%d, uncapped=%d, cpu_boost=%d, linear_filter=%d, show_fps=%d\n",
-             config_vsync, config_uncapped, config_cpu_boost, config_linear_filter, g_config_show_fps);
+    log_boot("Config loaded: vsync=%d, uncapped=%d, cpu_boost=%d, linear_filter=%d, show_fps=%d, widescreen=%d\n",
+             config_vsync, config_uncapped, config_cpu_boost, config_linear_filter, g_config_show_fps, config_widescreen);
 #endif // __SWITCH__
 
     for (int i = 1; i < argc; ++i) {
@@ -272,9 +274,14 @@ int main(int argc, char** argv) {
     opts.mod_game_id         = "sonic-advance-us";
     opts.mod_owns_adaptive_view = false;
 
-    // Sonic Advance: native 240x160 (4:3). No extended view by default.
-    opts.max_view_width        = 240;
-    opts.max_resize_view_width = 240;
+    // Widescreen: 284x160 (16:9) when enabled, else 240x160 (4:3).
+#if defined(__SWITCH__)
+    const int kViewWidth = config_widescreen ? 284 : 240;
+#else
+    const int kViewWidth = 240;
+#endif
+    opts.max_view_width        = kViewWidth;
+    opts.max_resize_view_width = kViewWidth;
     opts.resize_driven_view    = false;
     opts.extended_view_init    = nullptr;
 
@@ -310,6 +317,8 @@ int main(int argc, char** argv) {
     static char arg_linear_flag[]   = "--linear-filter";
     static char arg_uncapped_flag[] = "--uncapped";
     static char arg_no_hle[]        = "--no-bios-hle";
+    static char arg_vw_flag[]       = "--view-width";
+    static char arg_vw_284[]        = "284";
 
     std::vector<char*> av;
     av.push_back(argv && argv[0] ? argv[0] : arg_prog);
@@ -320,10 +329,18 @@ int main(int argc, char** argv) {
     av.push_back(arg_save_flag);
     av.push_back(arg_save_path);
     av.push_back(arg_no_hle);
+    if (config_widescreen) {
+        av.push_back(arg_vw_flag);
+        av.push_back(arg_vw_284);
+    }
 
     if (config_linear_filter) av.push_back(arg_linear_flag);
     if (config_uncapped)      av.push_back(arg_uncapped_flag);
     av.push_back(nullptr);
+
+    log_boot("Config: vsync=%d uncapped=%d cpu_boost=%d linear_filter=%d show_fps=%d widescreen=%d view_width=%d\n",
+             config_vsync, config_uncapped, config_cpu_boost, config_linear_filter,
+             g_config_show_fps, config_widescreen, kViewWidth);
 
     GameThreadArgs thread_args;
     thread_args.argc        = static_cast<int>(av.size() - 1);
