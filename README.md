@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 > **Nintendo Switch Homebrew Port**  
-> Ported and optimized for Nintendo Switch by **Niecks90** (v0.1.1).
+> Ported and optimized for Nintendo Switch by **Niecks90** (v0.1.2).
 
 A native static recompilation port of **Sonic Advance** (Game Boy Advance) for the Nintendo Switch, built on the [`gbarecomp`](https://github.com/mstan/gbarecomp) framework with custom Nintendo Switch Horizon OS / libnx platform integration.
 
@@ -64,9 +64,10 @@ The game ROM and Nintendo GBA BIOS are **not included**. You must provide your o
 | Switch Controller Input | Game Action |
 |:---|:---|
 | **D-Pad / Left Analog Stick** | Move / Crouch / Look Up |
-| **A / B** | Jump / Spin Dash / Special Actions |
-| **L / ZL** | Left Shoulder Action / Trick |
-| **R / ZR** | Right Shoulder Action / Trick |
+| **A / X** | Jump / Confirm (GBA A) |
+| **B / Y** | Spin Dash / Special Actions (GBA B) |
+| **L / ZL** | Left Shoulder Action / Trick (GBA L) |
+| **R / ZR** | Right Shoulder Action / Trick (GBA R) |
 | **+ (Plus / Start)** | Pause / Confirm |
 | **- (Minus / Select)** | Select |
 | **+ and - held together** | Safe exit back to Homebrew Menu |

@@ -25,7 +25,11 @@ static int sa_flash_stack_dispatch(uint32_t pc, int thumb) {
         g_cpu.R[0] = bus_read_u8(g_cpu.R[0]);
         const uint32_t lr = g_cpu.R[14];
         g_cpu.R[15] = lr & ~1u;
-        runtime_dispatch_with_exchange(lr);
+        if (lr & 1u) g_cpu.cpsr |= CPSR_T_BIT;
+        else         g_cpu.cpsr &= ~CPSR_T_BIT;
+        if (!runtime_call_should_return(lr)) {
+            runtime_dispatch_with_exchange(lr);
+        }
         return 1;
     }
     return 0;
@@ -48,15 +52,13 @@ extern "C" void switch_ppu_shutdown();
 void log_boot(const char* fmt, ...) {
     FILE* f = fopen("sdmc:/switch/sonicadvance_nx/boot.log", "a");
     if (f) {
-        va_list args, args_copy;
+        va_list args;
         va_start(args, fmt);
-        va_copy(args_copy, args);
         vfprintf(f, fmt, args);
-        vprintf(fmt, args_copy);
-        va_end(args_copy);
         va_end(args);
         fflush(f);
         fclose(f);
+        fsdevCommitDevice("sdmc");
     }
 }
 
@@ -302,6 +304,8 @@ int main(int argc, char** argv) {
     static char arg_bios_path[]     = "sdmc:/switch/sonicadvance_nx/gba_bios.bin";
     static char arg_rom_flag[]      = "--rom";
     static char arg_rom_path[]      = "sdmc:/switch/sonicadvance_nx/rom.gba";
+    static char arg_save_flag[]     = "--save";
+    static char arg_save_path[]     = "sdmc:/switch/sonicadvance_nx/save/sonic_advance_usa.sav";
     static char arg_linear_flag[]   = "--linear-filter";
     static char arg_uncapped_flag[] = "--uncapped";
     static char arg_hle[]           = "--bios-hle";
@@ -312,6 +316,8 @@ int main(int argc, char** argv) {
     av.push_back(arg_bios_path);
     av.push_back(arg_rom_flag);
     av.push_back(arg_rom_path);
+    av.push_back(arg_save_flag);
+    av.push_back(arg_save_path);
     av.push_back(arg_hle);
 
     if (config_linear_filter) av.push_back(arg_linear_flag);
@@ -345,6 +351,8 @@ int main(int argc, char** argv) {
     threadClose(&game_thread);
     switch_ppu_shutdown();
     SDL_Quit();
+    appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
+    fsdevCommitDevice("sdmc");
     return thread_args.return_code;
 
 #else

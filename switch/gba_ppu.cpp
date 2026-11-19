@@ -2314,6 +2314,13 @@ public:
         mutexLock(&mutex_);
         started_ = false;
         init_attempted_ = false;
+        stop_ = false;
+        queue_head_ = 0;
+        queue_tail_ = 0;
+        queue_count_ = 0;
+        active_workers_ = 0;
+        sleeping_workers_ = 0;
+        waiters_ = 0;
         mutexUnlock(&mutex_);
     }
 

@@ -3209,6 +3209,7 @@ HostWindow::Events HostWindow::pump() {
             keys &= static_cast<uint16_t>(~(1u << bit));
     }
 
+#if !defined(__SWITCH__)
     // SDL's standard controller vocabulary maps naturally to the ten GBA
     // inputs. Keyboard and controller are additive so either can be used at
     // any time, including while testing motion.
@@ -3239,41 +3240,69 @@ HostWindow::Events HostWindow::pump() {
         if (SDL_GameControllerGetAxis(b->controller, SDL_CONTROLLER_AXIS_TRIGGERRIGHT) > 8000)
             keys &= static_cast<uint16_t>(~(1u << 8)); // ZR = R
     }
+#else
+    // Direct libnx native controller polling on Nintendo Switch.
+    // Handles Handheld mode, Joy-Con pairs, single Joy-Cons, and Pro Controllers with zero latency and zero mapping issues.
+    static PadState s_pad;
+    static bool s_pad_inited = false;
+    if (!s_pad_inited) {
+        padInitializeAny(&s_pad);
+        s_pad_inited = true;
+    }
+    padUpdate(&s_pad);
+    const u64 kDown = padGetButtons(&s_pad);
+
+    // GBA keys (active-low):
+    // Bit 0: GBA A (Jump / OK) -> Physical A and X
+    if (kDown & (HidNpadButton_A | HidNpadButton_X)) {
+        keys &= static_cast<uint16_t>(~(1u << 0));
+    }
+    // Bit 1: GBA B (Roll / Attack / Cancel) -> Physical B and Y
+    if (kDown & (HidNpadButton_B | HidNpadButton_Y)) {
+        keys &= static_cast<uint16_t>(~(1u << 1));
+    }
+    // Bit 2: GBA Select -> Minus (-)
+    if (kDown & HidNpadButton_Minus) {
+        keys &= static_cast<uint16_t>(~(1u << 2));
+    }
+    // Bit 3: GBA Start -> Plus (+)
+    if (kDown & HidNpadButton_Plus) {
+        keys &= static_cast<uint16_t>(~(1u << 3));
+    }
+    // Bit 4: GBA Right -> D-Pad Right or Analog Stick Right
+    if (kDown & HidNpadButton_AnyRight) {
+        keys &= static_cast<uint16_t>(~(1u << 4));
+    }
+    // Bit 5: GBA Left -> D-Pad Left or Analog Stick Left
+    if (kDown & HidNpadButton_AnyLeft) {
+        keys &= static_cast<uint16_t>(~(1u << 5));
+    }
+    // Bit 6: GBA Up -> D-Pad Up or Analog Stick Up
+    if (kDown & HidNpadButton_AnyUp) {
+        keys &= static_cast<uint16_t>(~(1u << 6));
+    }
+    // Bit 7: GBA Down -> D-Pad Down or Analog Stick Down
+    if (kDown & HidNpadButton_AnyDown) {
+        keys &= static_cast<uint16_t>(~(1u << 7));
+    }
+    // Bit 8: GBA R -> R or ZR
+    if (kDown & (HidNpadButton_R | HidNpadButton_ZR)) {
+        keys &= static_cast<uint16_t>(~(1u << 8));
+    }
+    // Bit 9: GBA L -> L or ZL
+    if (kDown & (HidNpadButton_L | HidNpadButton_ZL)) {
+        keys &= static_cast<uint16_t>(~(1u << 9));
+    }
+
+    // Plus + Minus combo to exit cleanly
+    if ((kDown & HidNpadButton_Plus) && (kDown & HidNpadButton_Minus)) {
+        ev.quit = true;
+    }
+#endif
     if (b->touch_controls) {
         const uint16_t touch_buttons = active_touch_buttons(b);
         keys &= static_cast<uint16_t>(~touch_buttons);
     }
-
-#if defined(__SWITCH__)
-    if (b->controller && SDL_GameControllerGetAttached(b->controller)) {
-        // Map Left Stick to D-Pad (deadzone 8000)
-        Sint16 left_x = SDL_GameControllerGetAxis(b->controller, SDL_CONTROLLER_AXIS_LEFTX);
-        Sint16 left_y = SDL_GameControllerGetAxis(b->controller, SDL_CONTROLLER_AXIS_LEFTY);
-
-        if (left_x < -8000) keys &= static_cast<uint16_t>(~(1u << 5)); // Left
-        if (left_x > 8000)  keys &= static_cast<uint16_t>(~(1u << 4)); // Right
-        if (left_y < -8000) keys &= static_cast<uint16_t>(~(1u << 6)); // Up
-        if (left_y > 8000)  keys &= static_cast<uint16_t>(~(1u << 7)); // Down
-
-        // Natural Switch button mappings:
-        // Physical A / X -> GBA A (jump/confirm)
-        // Physical B / Y -> GBA B (roll/attack/cancel)
-        if (SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_A) ||
-            SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_X)) {
-            keys &= static_cast<uint16_t>(~(1u << 0));
-        }
-        if (SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_B) ||
-            SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_Y)) {
-            keys &= static_cast<uint16_t>(~(1u << 1));
-        }
-
-        // Plus + Minus Combo to exit
-        if (SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_START) &&
-            SDL_GameControllerGetButton(b->controller, SDL_CONTROLLER_BUTTON_BACK)) {
-            ev.quit = true;
-        }
-    }
-#endif
 ev.keyinput = keys;
 #if defined(GBARECOMP_RUNTIME_UI)
     if (b->runtime_ui && recomp_runtime_ui_is_open(b->runtime_ui))
