@@ -23,14 +23,16 @@ void FramePacer::reset() {
     next_ = clock::now() + period_;
 }
 
-void FramePacer::wait_for_next_frame() {
+void FramePacer::wait_for_next_frame(uint64_t frames) {
+    if (frames == 0) frames = 1;
+    const auto banked_period = period_ * static_cast<long long>(frames);
     if (uncapped_) {
         next_ = clock::now();
         return;
     }
     clock::time_point now = clock::now();
-    if (now > next_ + period_) {
-        next_ = now + period_;
+    if (now > next_ + banked_period) {
+        next_ = now + banked_period;
         return;
     }
 
@@ -50,7 +52,8 @@ void FramePacer::wait_for_next_frame() {
     const clock::time_point woke = clock::now();
     // Allow up to 8 ms tolerance for transient hitches so we don't drop cadence to 50 FPS.
     constexpr auto kLateTolerance = std::chrono::microseconds(8000);
-    next_ = woke > next_ + kLateTolerance ? woke + period_ : next_ + period_;
+    next_ = woke > next_ + kLateTolerance ? woke + banked_period
+                                          : next_ + banked_period;
 #else
     constexpr auto kSpinTail = std::chrono::microseconds(1200);
     if (next_ - now > kSpinTail) {
@@ -61,8 +64,8 @@ void FramePacer::wait_for_next_frame() {
     }
     const clock::time_point woke = clock::now();
     constexpr auto kLateTolerance = std::chrono::microseconds(1500);
-    next_ = woke > next_ + kLateTolerance ? woke + period_
-                                          : next_ + period_;
+    next_ = woke > next_ + kLateTolerance ? woke + banked_period
+                                          : next_ + banked_period;
 #endif
 }
 

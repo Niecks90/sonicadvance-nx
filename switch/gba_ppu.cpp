@@ -3039,6 +3039,10 @@ void GbaPpu::mark_framebuffer_latched() {
     if (presentation_) presentation_->frame_ready();
 }
 
+const uint8_t* GbaPpu::latched_framebuffer() const {
+    return latched_fb_.data();
+}
+
 void GbaPpu::set_rasterization_enabled(bool enabled) {
     rasterization_enabled_ = enabled;
     if (!enabled) {
